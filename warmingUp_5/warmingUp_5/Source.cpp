@@ -6,10 +6,21 @@ typedef struct DOT {
 	int x;
 	int y;
 	int z;
-	bool in;
+	int in;
 } DOT;
 
 typedef DOT element;
+
+typedef struct DOT_D {
+	int x;
+	int y;
+	int z;
+	int in;
+	int dis;
+};
+
+typedef DOT_D element_d;
+
 typedef struct {
 	element dot[MAX_SIZE];
 	int front, rear;
@@ -163,15 +174,15 @@ int zero_distance_max(DequeType* q) {
 
 	for (int i = 0; i < MAX_SIZE; i++) {
 		if (q->dot[i].in == 1) {
-			value[i] = sqrt((q->dot[i].x * q->dot[i].x) + 
-				(q->dot[i].y * q->dot[i].y) + (q->dot[i].z * q->dot[i].z));
+			value[i] = sqrt(pow(q->dot[i].x, 2) + 
+				pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2));
 		}
 	}
 
 	int max_value = 0;
 	int max_i = MAX_SIZE + 1;
 	for (int i = 0; i < MAX_SIZE; i++) {
-		if (value[i] > max_value) {
+		if (value[i] > max_value && q->dot[i].in) {
 			max_value = value[i];
 			max_i = i;
 		}
@@ -187,15 +198,15 @@ int zero_distance_min(DequeType* q) {
 
 	for (int i = 0; i < MAX_SIZE; i++) {
 		if (q->dot[i].in == 1) {
-			value[i] = sqrt((q->dot[i].x * q->dot[i].x) +
-				(q->dot[i].y * q->dot[i].y) + (q->dot[i].z * q->dot[i].z));
+			value[i] = sqrt(pow(q->dot[i].x, 2) +
+				pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2));
 		}
 	}
 
-	int min_value = 100000;
+	int min_value = 1000000;
 	int min_i = MAX_SIZE + 1;
 	for (int i = 0; i < MAX_SIZE; i++) {
-		if (value[i] < min_value) {
+		if (value[i] < min_value && q->dot[i].in) {
 			min_value = value[i];
 			min_i = i;
 		}
@@ -204,7 +215,60 @@ int zero_distance_min(DequeType* q) {
 	return min_i;
 }
 
+/*
+void selection_sort(element_d sorted[]) {
+	int minIndex;
+	for (int i = 0; i < MAX_SIZE - 1; i++) {
+		minIndex = i;
+		for (int j = i + 1; j < MAX_SIZE; j++)
+			if (sorted[j].dis < sorted[minIndex].dis)
+				minIndex = i;
+		swap(&sorted[i].x, &sorted[minIndex].x);
+		swap(&sorted[i].y, &sorted[minIndex].y);
+		swap(&sorted[i].z, &sorted[minIndex].z);
+		swap(&sorted[i].in, &sorted[minIndex].in);
+	}
+} */
 
+void sort_distance(DequeType* q) {
+	element_d sorted[MAX_SIZE] = { 0, };
+
+	for (int i = 0; i < MAX_SIZE; i++) {
+		sorted[i].x = q->dot[i].x;
+		sorted[i].y = q->dot[i].y;
+		sorted[i].z = q->dot[i].z;
+		if (q->dot[i].in == 1)
+			sorted[i].in = 1;
+		sorted[i].dis = pow(q->dot[i].x, 2) +
+			pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2);
+	}
+
+	element_d temp = {0,};
+	for (int i = 0; i < MAX_SIZE - 1; i++)
+	{
+		for (int j = 0; j < MAX_SIZE - 1 - i; j++)
+		{
+			if (sorted[j].dis > sorted[j + 1].dis)
+			{
+				temp = sorted[j];
+				sorted[j] = sorted[j + 1];
+				sorted[j + 1] = temp;
+			}
+		}
+	}
+
+	int count = 0;
+	for (int j = 0; j < MAX_SIZE; j++) {
+		if (sorted[j].in == 0) {
+			// printf(" %d ||               ||\n", j);
+		}
+		else {
+			printf(" %d ||  %3d %3d %3d  ||\n", count,
+				sorted[j].x, sorted[j].y, sorted[j].z);
+			count++;
+		}
+	}
+}
 
 int main() {
 
@@ -212,20 +276,22 @@ int main() {
 
 	init_deque(&head);
 
-	//deque_print(&head);
-
-
-
 	while (1) {
 		char order;
+		printf("---------------------------------\n");
+
 		fseek(stdin, 0, SEEK_END);
 		scanf("%c", &order);
 		
+		printf("---------------------------------\n");
+
 		printf("\n");
 
 		int k = 0, n = 0;
 
 		int val1 = 0, val2 = 0, val3 = 0;
+
+		bool print_sorted = 0;
 
 		switch (order) {
 		case '+':
@@ -267,13 +333,30 @@ int main() {
 			break;
 		case 'n': // 원점에서 가장 가까운 거리 점 좌표
 			n = zero_distance_min(&head);
-			if (k == MAX_SIZE + 1) printf("출력할 값이 없습니다.\n");
-			else printf("원점에서 가장 가까운 거리 점 : (%d, %d, %d)\n", head.dot[k].x, head.dot[k].y, head.dot[k].z);
+			if (n == MAX_SIZE + 1) printf("출력할 값이 없습니다.\n");
+			else printf("원점에서 가장 가까운 거리 점 : (%d, %d, %d)\n", head.dot[n].x, head.dot[n].y, head.dot[n].z);
 			//deque_print(&head);
 			break;
 		case 's': // 원점과의 거리 오름(또는 내림)차순 정렬 출력
-
-			//deque_print(&head);
+			if (print_sorted) {
+				if (print_num == 0) {
+					printf("출력할 값이 없습니다.\n");
+				}
+				else {
+					sort_distance(&head);
+					print_sorted = 0;
+				}
+			}
+			else {
+				if (print_num == 0) {
+					printf("출력할 값이 없습니다.\n");
+				}
+				else {
+					deque_print(&head);
+					print_sorted = 1;
+				}
+			}
+			
 			break;
 		case 'q':
 			exit(0);
