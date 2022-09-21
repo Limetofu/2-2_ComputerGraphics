@@ -1,4 +1,4 @@
-#define NUMB 7
+#define NUMB 6
 
 #if NUMB == 1
 
@@ -95,16 +95,19 @@ void mult_array(int array[2][3][3]) {
 	printf("\n");
 }
 
-int det_array(int array[2][3][3], int j, bool if_print) {
+int det_array(int array[][3][3], int j, int if_print) {
 
 	int det = array[j][0][0] * (array[j][1][1] * array[j][2][2] - (array[j][1][2] * array[j][2][1]))
 		- array[j][0][1] * (array[j][1][0] * array[j][2][2] - (array[j][1][2] * array[j][2][0]))
 		+ array[j][0][2] * (array[j][1][0] * array[j][2][1] - (array[j][1][1] * array[j][2][0]));
 
-	if (if_print) {
+	if (if_print == 1) {
 		print_array(array, j);
 		printf("\n  det = %d\n\n", det);
 	}
+
+	if (if_print == 2)
+		printf("\n  det = %d\n\n", det);
 
 	return det;
 }
@@ -132,7 +135,7 @@ void trans_array(int array[2][3][3]) {
 	det_array(transposed_array, 1, 1);
 }
 
-void quad_array_det(int array[2][4][4], int num) {
+int quad_array_det(int array[2][4][4], int num) {
 	int det = 0;
 	int temp_array[4][3][3] = { 0, };
 
@@ -159,11 +162,12 @@ void quad_array_det(int array[2][4][4], int num) {
 		}
 
 	for (int i = 0; i < 4; i++) {
-		det += array[num][0][i] * (int)pow((double)-1, (double)(2 + i))
-			* det_array(temp_array, 0, 0);
+		det += array[num][0][i] * (int)pow(-1, (2 + i))
+			* det_array(temp_array, i, 0);
 	}
 
-	printf("\n  det = %d\n\n", det);
+	return det;
+	
 }
 
 int main(void) {
@@ -227,6 +231,7 @@ int main(void) {
 					printf("\n");
 				}
 				quad_array_det(array_4, j);
+				det_array(array, j, 2);
 				printf("\n\n\n");
 			}
 
@@ -851,6 +856,13 @@ int main() {
 
 #include "Header_5.h"
 
+#define SWAP(a, b, type) do { \
+    type temp; \
+    temp = a;  \
+    a = b;     \
+    b = temp;  \
+} while (0)
+
 #define MAX_SIZE 10
 
 typedef struct DOT {
@@ -1014,8 +1026,8 @@ int zero_distance_max(DequeType* q) {
 
 	for (int i = 0; i < MAX_SIZE; i++) {
 		if (q->dot[i].in == 1) {
-			value[i] = sqrt(pow(q->dot[i].x, 2) +
-				pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2));
+			value[i] = pow(q->dot[i].x, 2) +
+				pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2);
 		}
 	}
 
@@ -1038,8 +1050,8 @@ int zero_distance_min(DequeType* q) {
 
 	for (int i = 0; i < MAX_SIZE; i++) {
 		if (q->dot[i].in == 1) {
-			value[i] = sqrt(pow(q->dot[i].x, 2) +
-				pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2));
+			value[i] = pow(q->dot[i].x, 2) +
+				pow(q->dot[i].y, 2) + pow(q->dot[i].z, 2);
 		}
 	}
 
@@ -1114,6 +1126,37 @@ void sort_distance(DequeType* q) {
 	}
 }
 
+void new_e(DequeType* q, element val) {
+
+	int pos = 0;
+
+	if (print_num(q) == 10) printf("full\n");
+	else {
+		//들어갈 칸이 있을 때
+			if (q->dot[0].in == 0) {
+				// 없으면?
+				// 넣으면 됨
+				q->dot[0] = val;
+			}
+			else if (q->dot[0].in == 1) {
+				// 있으면?
+				// 한칸씩 옮기고 insert
+
+				for (int i = 0; i < MAX_SIZE; i++) {
+					if (q->dot[i].in == 0) {
+						pos = i;
+					}
+				}
+
+				for (int k = pos; k >= 1; k--) {
+					q->dot[k] = q->dot[k - 1];
+				}
+				q->dot[0] = val;
+			}
+	}
+}
+
+
 int main() {
 
 	DequeType head;
@@ -1160,6 +1203,16 @@ int main() {
 
 			deque_print(&head);
 			break;
+
+		case 'E':
+			fseek(stdin, 0, SEEK_END);
+			printf("\n  넣을 값 : ");
+			scanf("%d %d %d", &val1, &val2, &val3);
+			new_e(&head, { val1, val2, val3, 1 });
+
+			deque_print(&head);
+			break;
+
 		case 'd':
 			delete_rear(&head);
 			deque_print(&head);
@@ -1716,6 +1769,7 @@ int main() {
 		printf("\n\n  Command : ");
 		fseek(stdin, 0, SEEK_END);
 		order = _getch();
+
 		switch (order) {
 		case 72: // w
 			show_cursor = 1;
