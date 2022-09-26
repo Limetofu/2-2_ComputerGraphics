@@ -10,8 +10,7 @@
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
 
-#define NUM 2
-
+#define NUM 1
 
 #if NUM == 1
 
@@ -225,7 +224,6 @@ void Mouse(int button, int state, int x, int y) {
 
 
 void random_color(COLORVALUE color) {
-
 	color.r = (float)rand() / (RAND_MAX);
 	color.g = (float)rand() / (RAND_MAX);
 	color.b = (float)rand() / (RAND_MAX);
