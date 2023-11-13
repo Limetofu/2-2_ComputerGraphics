@@ -12,8 +12,6 @@
 
 #define DRILL 20
 
-#if DRILL == 20
-
 #define GWIDTH (GLint)1000
 #define GHEIGHT (GLint)1000
 
@@ -27,6 +25,9 @@ typedef struct COLORVALUE {
 	float g;
 	float b;
 };
+
+
+
 
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -54,8 +55,9 @@ void DrawShapeOri();
 
 GLchar* vertexSource, * fragmentSource;
 GLuint vertexShader;
-GLuint fragmentShader;
 GLuint s_program;
+GLuint fragmentShader;
+
 GLuint vao, vbo[2];
 
 // 은면 제거 설정
@@ -66,6 +68,7 @@ GLfloat cameraPosZ = 2.0f;
 GLfloat cameraPosX = 0.0f;
 
 GLfloat cameraY = 0.0f;
+
 
 int animeFrontOpen = false;
 GLfloat degreeFront = 89.0f;
@@ -1311,11 +1314,3 @@ GLuint make_shaderProgram()
 	//--- 사용하기 직전에 호출할 수 있다.
 	return ShaderProgramID;
 }
-
-
-
-
-
-
-
-#endif
