@@ -1,0 +1,21 @@
+마우스 xy <- rect xy안에 들어가 있으면?
+
+selected = 1
+
+selected 도형만 마우스를 따라 움직이기.
+selected rect xy 값을 마우스 Motion의 xy값의 변화만큼 더하기
+
+left_button true일 때 경우의 수
+
+1. 하나만 눌렸을 때
+  -> rect selected = 1
+
+2. 여러개가 눌렸을 때
+  -> prior이 높은 rect만 selected.
+
+우선도가 높은 순으로.
+처음부터 4로 시작.
+
+4321
+
+show하지 않을때, prior 기본값은 -1.

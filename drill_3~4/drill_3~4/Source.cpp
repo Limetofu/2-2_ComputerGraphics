@@ -19,7 +19,7 @@
 #define GWIDTH 800
 #define GHEIGHT 800
 
-#define NUM 3
+#define NUM 4
 
 #if NUM == 3
 
@@ -54,7 +54,7 @@ typedef struct INT_RECT {
 
 RECTANGLE rect[5] = { 0, };
 INT_RECT int_rect[5] = { 0, };
-static int showed_rect_count = 0;
+static int showed_rect_count = 1;
 
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -68,6 +68,7 @@ void print_rect(int i);
 
 void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정 
 { //--- 윈도우 생성하기
+	srand(time(NULL));
 	glutInit(&argc, argv); // glut 초기화
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA); // 디스플레이 모드 설정
 	glutInitWindowPosition(100, 100); // 윈도우의 위치 지정
@@ -89,11 +90,32 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정
 	glutMotionFunc(Motion);
 	glutKeyboardFunc(Keyboard);
 	
-	for (int i = 0; i < 5; i++) {
-		rect[i].left = rect[i].top = -0.2f;
-		rect[i].right = rect[i].bottom = 0.2f;
+	// main에서 rect 초기화 해줌!
+	
+	rect[0].left = rect[0].top = -0.2f;
+	rect[0].right = rect[0].bottom = 0.2f;
+	rect[0].show = true;
+	rect[0].prior = 4;
+
+	for (int i = 1; i < 5; i++) {
+		//rect[i].left = rect[i].top = -0.2f;
+		//rect[i].right = rect[i].bottom = 0.2f;
+
+		rect[i].left = -1.0f + (0.6f - -1.0f) * ((float)rand() / RAND_MAX);
+		rect[i].top = -1.0f + (0.6f - -1.0f) * ((float)rand() / RAND_MAX);
+		rect[i].right = rect[i].left + 0.4f;
+		rect[i].bottom = rect[i].top + 0.4f;
+
+		//printf("%f, %f\n", rect[i].left, rect[i].top);
+
 		rect[i].prior = -1;
 	}
+
+	rect[0].color = { 1.0f, 0.0f, 0.0f }; // r
+	rect[1].color = { 0.0f, 1.0f, 0.0f }; // g
+	rect[2].color = { 0.0f, 0.0f, 1.0f }; // b
+	rect[3].color = { 1.0f, 1.0f, 1.0f }; // w
+	rect[4].color = { 1.0f, 1.0f, 0.0f }; // y
 
 	// int형으로 좌표 변환
 	// float형은 RECTANGLE 구조체에 포함되어있음
@@ -112,16 +134,8 @@ GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 
 GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수 
 {
-	
-
 	glClearColor(backg_color.r, backg_color.g, backg_color.b, 1.0f); // 바탕색을 ‘blue’ 로 지정
 	glClear(GL_COLOR_BUFFER_BIT); // 설정된 색으로 전체를 칠하기
-	
-	rect[0].color = { 1.0f, 0.0f, 0.0f }; // r
-	rect[1].color = { 0.0f, 1.0f, 0.0f }; // g
-	rect[2].color = { 0.0f, 0.0f, 1.0f }; // b
-	rect[3].color = { 1.0f, 1.0f, 1.0f }; // w
-	rect[4].color = { 1.0f, 1.0f, 0.0f }; // y
 	
 	int wanted_prior = 5 - showed_rect_count;
 
@@ -137,11 +151,11 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	// 고른걸 제일 마지막에 출력해야함.
 	
-	for (int i = 0; i < 5; i++) {
-		if (rect[i].selected == 1) {
-			print_rect(i);
-		}
-	} 
+	//for (int i = 0; i < 5; i++) {
+	//	if (rect[i].selected == 1) {
+	//		print_rect(i);
+	//	}
+	//}
 
 	glutSwapBuffers(); // 화면에 출력하기
 }
@@ -157,7 +171,7 @@ void Mouse(int button, int state, int x, int y) {
 		int max_prior = 0, big_rect_num = 0, count = 0;
 
 		for (int i = 0; i < 5; i++) {
-			if (x >= int_rect[i].left && x <= int_rect[i].right && y >= int_rect[i].top && y <= int_rect[i].bottom) {
+			if (x >= int_rect[i].left && x <= int_rect[i].right && y <= int_rect[i].top && y >= int_rect[i].bottom) {
 				count++;
 				if (rect[i].prior >= max_prior) {
 					big_rect_num = i;
@@ -236,7 +250,6 @@ void Motion(int x, int y) {
 
 		int afterX = x - beforeX;
 		int afterY = y - beforeY;
-		float f_afterX, f_afterY;
 
 		for (int i = 0; i < 5; i++) {
 			if (rect[i].selected == 1) {
@@ -279,8 +292,10 @@ void convert_openglXY_to_deviceXY(int* x, int* y, float ox, float oy) {
 	float w = GWIDTH;
 	float h = GHEIGHT;
 	*x = (int)((ox * w + w) / 2);
-	*y = (int)((oy * w + w) / 2);
+	*y = GHEIGHT - (int)((oy * h + h) / 2);
 }
+
+
 
 GLvoid Keyboard(unsigned char key, int x, int y) {
 	switch (key) {
@@ -311,12 +326,13 @@ GLvoid Keyboard(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 	}
+
 	glutPostRedisplay();
 }
 
 void print_rect(int i) {
 	glColor3f(rect[i].color.r, rect[i].color.g, rect[i].color.b);
-	glRectf(rect[i].left, rect[i].top, rect[i].right, rect[i].bottom);
+	glRectf(rect[i].left, rect[i].bottom, rect[i].right, rect[i].top);
 }
 
 void random_color(COLORVALUE color) {
@@ -380,8 +396,6 @@ void TimerFunction(int value);
 void print_rect(int i);
 
 
-
-
 void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정 
 { //--- 윈도우 생성하기
 	glutInit(&argc, argv); // glut 초기화
@@ -416,6 +430,12 @@ void main(int argc, char** argv) //--- 윈도우 출력하고 콜백함수 설정
 		rect[i].zig_count = rand() % 20;
 	}
 
+	rect[0].color = { 1.0f, 0.0f, 0.0f }; // r
+	rect[1].color = { 0.0f, 1.0f, 0.0f }; // g
+	rect[2].color = { 0.0f, 0.0f, 1.0f }; // b
+	rect[3].color = { 1.0f, 1.0f, 1.0f }; // w
+	rect[4].color = { 1.0f, 1.0f, 0.0f }; // y
+
 	// int형으로 좌표 변환
 	// float형은 RECTANGLE 구조체에 포함되어있음
 	for (int i = 0; i < 5; i++) {
@@ -435,12 +455,6 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 	glClearColor(backg_color.r, backg_color.g, backg_color.b, 1.0f); // 바탕색을 ‘blue’ 로 지정
 	glClear(GL_COLOR_BUFFER_BIT); // 설정된 색으로 전체를 칠하기
 
-	rect[0].color = { 1.0f, 0.0f, 0.0f }; // r
-	rect[1].color = { 0.0f, 1.0f, 0.0f }; // g
-	rect[2].color = { 0.0f, 0.0f, 1.0f }; // b
-	rect[3].color = { 1.0f, 1.0f, 1.0f }; // w
-	rect[4].color = { 1.0f, 1.0f, 0.0f }; // y
-
 	int wanted_prior = 5 - showed_rect_count;
 
 	for (int i = 0; i < 5; i++) {
@@ -453,7 +467,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 int beforeX = 0, beforeY = 0;
 
-void Mouse(int button, int state, int x, int y) {
+void Mouse(int button, int state, int x, int y) { // x 600, y 200
 	srand(time(NULL));
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -578,7 +592,7 @@ void move_zig_DW(int i) {
 }
 
 void random_size(int i) {
-	if (rect[i].shape_count_X <= 300) {
+	if (rect[i].shape_count_X <= 300) { // 0, 100, 200
 		rect[i].left -= 0.0005f;
 		rect[i].right += 0.0005f;
 		rect[i].shape_count_X++;
@@ -744,6 +758,13 @@ GLvoid Keyboard(unsigned char key, int x, int y) {
 			rect[i].selected = 0;
 			showed_rect_count = 0;
 		}
+		for (int i = 0; i < 5; i++) {
+			rect[i].prior = -1;
+			rect[i].shape_count_X = rand() % 150;
+			rect[i].shape_count_Y = rand() % 150;
+			rect[i].zig_count = rand() % 20;
+		}
+
 		move_a = 0, move_zig = 0, change_shape = 0;
 		break;
 	case 'Q': case 'q':
@@ -766,5 +787,134 @@ void random_color(COLORVALUE color) {
 
 
 
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+
+struct Rect {
+	float x, y;
+	float width, height;
+	float r, g, b;
+	bool isSelected = false;
+	bool shouldDisappear = false;
+};
+
+const int NUM_RECTANGLES = 5;
+
+std::vector<Rect> rectangles;
+
+void createRandomRectangles() {
+	rectangles.clear();
+	for (int i = 0; i < NUM_RECTANGLES; i++) {
+		Rect rect;
+		rect.x = static_cast<float>(rand() % (glutGet(GLUT_WINDOW_WIDTH) - 80));
+		rect.y = static_cast<float>(rand() % (glutGet(GLUT_WINDOW_HEIGHT) - 80));
+		rect.width = 100;
+		rect.height = 100;
+		rect.r = static_cast<float>(rand()) / RAND_MAX;
+		rect.g = static_cast<float>(rand()) / RAND_MAX;
+		rect.b = static_cast<float>(rand()) / RAND_MAX;
+		rectangles.push_back(rect);
+	}
+}
+
+void splitAndMove(Rect& rect) {
+	float half_width = rect.width / 2.0f;
+	float half_height = rect.height / 2.0f;
+
+	for (int i = -1; i <= 1; i += 2) {
+		for (int j = -1; j <= 1; j += 2) {
+			Rect new_rect;
+			new_rect.x = rect.x + i * half_width / 2.0f;
+			new_rect.y = rect.y + j * half_height / 2.0f;
+			new_rect.width = half_width;
+			new_rect.height = half_height;
+			new_rect.r = rect.r;
+			new_rect.g = rect.g;
+			new_rect.b = rect.b;
+		}
+	}
+}
+
+void mouseButton(int button, int state, int x, int y) {
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		y = glutGet(GLUT_WINDOW_HEIGHT) - y;
+		for (Rect& rect : rectangles) {
+			if (x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height) {
+				rect.isSelected = true;
+				splitAndMove(rect);
+			}
+		}
+		glutPostRedisplay();
+	}
+}
+
+void updateRectangles() {
+	for (Rect& rect : rectangles) {
+		if (rect.isSelected) {
+			rect.width *= 0.98f;
+			rect.height *= 0.98f;
+			if (rect.width < 10.0f || rect.height < 10.0f) {
+				rect.shouldDisappear = true;
+			}
+		}
+	}
+	rectangles.erase(std::remove_if(rectangles.begin(), rectangles.end(), [](const Rect& rect) {
+		return rect.shouldDisappear;
+		}), rectangles.end());
+}
+
+void display() {
+	glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBegin(GL_QUADS);
+	for (const Rect& rect : rectangles) {
+		glColor3f(rect.r, rect.g, rect.b);
+		glVertex2f(rect.x, rect.y);
+		glVertex2f(rect.x + rect.width, rect.y);
+		glVertex2f(rect.x + rect.width, rect.y + rect.height);
+		glVertex2f(rect.x, rect.y + rect.height);
+	}
+	glEnd();
+	glutSwapBuffers();
+}
+
+void update(int value) {
+	updateRectangles();
+	glutPostRedisplay();
+	glutTimerFunc(16, update, 0);
+}
+
+void reshape(int w, int h) {
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+int main(int argc, char** argv) {
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+	glutInitWindowSize(800, 600);
+	glutCreateWindow("Animated Rectangles");
+
+	createRandomRectangles();
+
+	glutDisplayFunc(display);
+	glutReshapeFunc(reshape);
+	glutMouseFunc(mouseButton);
+	glutTimerFunc(0, update, 0);
+
+	glutMainLoop();
+
+	return 0;
+}
 
 #endif
